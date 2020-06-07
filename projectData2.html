@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body{
+        text-align: center;
+        background-color: navajowhite;
+        }
+        .dot{
+          fill :  mediumspringgreen;
+        }
+        
+     </style>   
+   
+    <script src="https://d3js.org/d3.v5.js"></script>
+</head>
+<body>
+    <h1 id="title">Doping in Professional Bicycle Racing</h1>
+    <h2 id="legend">35 Fastest times up Alpe d'Huez</h2>
+
+    <script>
+const w = 1000;
+const h = 500;
+const padding = 30;
+
+const svg = d3.select("body")
+              .append("svg")
+              .attr("width",w)
+              .attr("height",h)
+fetch("https://raw.githubusercontent.com/freeCodeCamp/ProjectReferenceData/master/cyclist-data.json").then(response => response.json()).then(data => {
+  const year = data.map(function(item){
+    return item.Year;
+  })
+  
+  const time = data.map(function(item){
+    return item.Time;
+  })
+  
+  const seconds = data.map(function(item){
+    return item.Seconds;
+  })
+
+  const max = d3.max(seconds);
+  const min = d3.min(seconds);
+  
+  
+  const names = data.map(function(item){
+    return item.Name;
+  })
+  
+  const nationality = data.map(function(item){
+    return item.Nationality;
+   })
+   var specifier = "%M:%S";
+    var parsedData = time.map(function(d) {
+    return d3.timeParse(specifier)(d)
+    });
+    var timeFormat = d3.timeFormat("%M:%S");
+  const xScale = d3.scaleLinear().domain([d3.min(year)-1,d3.max(year)]).range([padding,w-padding])
+  const yScale = d3.scaleTime().domain([d3.max(parsedData),d3.min(parsedData)]).range([h - padding, padding])
+  const xAxis = d3.axisBottom(xScale).tickFormat(d3.format("d"));
+  const yAxis = d3.axisLeft(yScale).tickFormat(timeFormat);
+  svg.append("g")
+       .attr("transform", "translate(0," + (h - padding) + ")").attr("id","x-axis")
+       .call(xAxis);
+  svg.append("g")
+        .attr("transform","translate(30,0)").call(yAxis).attr("id","y-axis")
+
+const secondScale = d3.scaleLinear().domain([min,max]).range([h - padding, padding])
+// console.log(h-secondScale(seconds[1]))
+
+var div = d3.select("body").append("div").
+attr("class", "tooltip").
+attr("id", "tooltip").
+style("opacity", 0);
+
+
+svg.selectAll("circle")
+    .data(seconds)
+    .enter()
+    .append("circle")
+    .attr("cx",(d,i) => xScale(year[i]))
+    .attr("cy",(d,i) => {
+        
+        return h-secondScale(seconds[i]) }
+        )
+    .attr("r",5)
+    .attr("class","dot")
+    .attr("data-xvalue",(d,i) => {
+
+        return year[i]})
+    .attr("data-yvalue",(d,i) =>parsedData[i])
+    // .append("title")
+    // .attr("id","tooltip")
+    // .attr("data-year",(d,i) => year[i])
+    // .text((d,i) => {
+    //     console.log(i);
+    //     console.log(seconds[i])
+    //     return ("Name: "+ names[i]+ "\nNationality: " + nationality[i]+ "\ntime: "+time[i]
+    //     )
+    // })
+    .on("mouseover", (d,i) => {
+    div.style("opacity", .9);
+    div.attr("data-year", year[i]);
+    div.html("Name: " + names[i] +"\nNationality: " + nationality[i] + "\nTime: " + time[i])
+    div.style("x", (d,i) => xScale(year[i]) + 5)
+    div.style("y", (d,i) => h-secondScale(seconds[i]))
+    })
+  
+  .on("mouseout", function (d) {
+    div.style("opacity", 0);
+  })
+  
+})
+
+   
+    </script>
+     <script src="https://cdn.freecodecamp.org/testable-projects-fcc/v1/bundle.js"></script>
+     <p>Created by <a href="https://www.linkedin.com/notifications/">Duc Pham</a></p>
+</body>
+</html>
